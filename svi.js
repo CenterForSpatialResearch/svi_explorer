@@ -420,28 +420,28 @@ function drawMap(data,outline){
              'filter': ['==', '$type', 'Polygon']
          },"ST-OUTLINE");
          
-         map.addLayer({
-             'id': 'county_outline',
-             'type': 'line',
-             'source': 'counties',
-             'paint': {
-                 'line-color':"#ffffff",
-                 'line-opacity':[
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false],
-                    1,
-                    1
-                 ],
-                 'line-width':[
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false],
-                    4,
-                    1
-                 ]
-             },
-             
-             'filter': ['==', '$type', 'Polygon']
-         },"ST-OUTLINE");
+         // map.addLayer({
+//              'id': 'county_outline',
+//              'type': 'line',
+//              'source': 'counties',
+//              'paint': {
+//                  'line-color':"#ffffff",
+//                  'line-opacity':[
+//                     'case',
+//                     ['boolean', ['feature-state', 'hover'], false],
+//                     1,
+//                     1
+//                  ],
+//                  'line-width':[
+//                     'case',
+//                     ['boolean', ['feature-state', 'hover'], false],
+//                     4,
+//                     1
+//                  ]
+//              },
+//
+//              'filter': ['==', '$type', 'Polygon']
+//          },"ST-OUTLINE");
             
          zoomToBounds(map)
          placesMenus(map)
@@ -762,7 +762,33 @@ function strategyMenu(map,data){
 
                 
 function colorByPriority(map){
+        //
+    // map.removeLayer("counties")
+    // map.removeSource("counties")
+    
+    map.getSource('counties').setData(pub.all);
+    
+    
+    // map.addSource("counties",{
+ //         "type":"geojson",
+ //         "data":pub.all
+ //     })
+ //
+ //     map.addLayer({
+ //         'id': 'counties',
+ //         'type': 'fill',
+ //         'source': 'counties',
+ //         'paint': {
+ //         'fill-color': "white",
+ //             'fill-opacity':0
+ //         },
+ //         'filter': ['==', '$type', 'Polygon']
+ //     },"ST-OUTLINE");
+    
+    
+    
     map.setPaintProperty("counties", 'fill-opacity',1)
+    
     var matchString = {
     property: "tally",
     stops: [[0,"#ddd"],[0.00001, "green"],[pub.activeThemes.length/2,"gold"],[pub.activeThemes.length, "red"]]
