@@ -67,10 +67,30 @@
       #activeLegend{
         position:absolute;
         right:20px;
-        top:100px;
+        top:10px;
         border:1px solid black;
         width:300px;
+        z-index:999;
         padding:10px;
+      }
+      #rankings{
+        position:absolute;
+        top:40px;
+        right:10px;
+        width:200px;
+        z-index:999;
+        background-color:#fff;
+      }
+      #rankingsTitle{
+        position:absolute;
+        top:10px;
+        right:10px;
+        width:200px;
+        z-index:999;
+        background-color:#fff;
+      }
+      #nav{
+        margin-top:0px;
       }
     </style>
 
@@ -78,9 +98,6 @@
 
 <body>
 
-<div id="head">
-  <span id="brand">SVI Test</span><br>
-</div>
 
 <div id="byState"></div>
 <div id="nav">
@@ -111,9 +128,12 @@
 </div>
 
 
-  <div id="activeLegend">colorcoding of the sum of currently selected categories
+  <!-- <div id="activeLegend">colorcoding of the sum of currently selected categories
   </div>
-
+   -->
+  
+<div id="rankingsTitle">Counties ranked by current selection from most vulnerable to least</div>
+<div id="rankings"></div>
 
   <div id="map"></div>
   <div id="mapPopup"></div>

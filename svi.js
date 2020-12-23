@@ -15,6 +15,7 @@ var themesDefinitions ={
     "RPL_THEMES":"Overall percentile ranking for themes"
 }
 var possibleStartStates = ["CA","LA","FL","NY","MT","TX"]
+var possibleStartStates = ["NY"]
 var randomStartState = possibleStartStates[Math.round(Math.random()*possibleStartStates.length-1)]
 var pub = {
     // strategy:"percentage_scenario_SVI_hotspot",
@@ -129,9 +130,9 @@ var newColors =  ["_10","#ddd",
                 "_2","rgba(255, 241, 0, 1)",
                 '#eee'
                 ]
-    
-var pStops = [[0,.34],[.34,.67],[.67,1]]
-var cStops = [[0,34],[34,67],[67,100]]
+    var colorScale = d3.scaleLinear()
+    .domain([0,measures.length/2,measures.length])
+    .range(["green","gold","red"])
 //
 // var groupColorDict = []
 // for(var g =0; g<colorGroups.length; g++){
@@ -200,13 +201,18 @@ function ready(counties,outline,centroids,states,svi){
         THEME3:"Minority Status & Language",
         THEME4:"Housing Type & Transportation"
     }
-    
+
+
     var themeColors = {
-        THEME1:"#d4debc",
-        THEME2:"#dcde8c",
-        THEME3:"#dde245",
-        THEME4:"#a6e88f"
+        THEME1:"#87c8e1",
+        THEME2:"#3d85a4",
+        THEME3:"#4bacdd",
+        THEME4:"#658994"
     }
+    
+    
+    var sorted = rankCounties()
+    drawList(sorted)
     
     for(var g in groups){
         var themeName = g
@@ -237,6 +243,7 @@ function ready(counties,outline,centroids,states,svi){
                     //tally +=minMaxDictionary[id].max
                     calculateTally(toggleDictionary)
                     colorByPriority(map)
+                    updateList(rankCounties())
                 }else{
                     d3.select(this).style("background-color","#aaa")
                     toggleDictionary[id]=false
@@ -244,14 +251,86 @@ function ready(counties,outline,centroids,states,svi){
                 
                     calculateTally(toggleDictionary)
                     colorByPriority(map)
+                    updateList(rankCounties())
                 }
             })
         }
     }
-    
-   
 }
 
+function rankCounties(){
+    //filter to state
+    var countiesInState =[]
+    for(var c in pub.all.features){
+        var state = pub.all.features[c].properties["ST_ABBR"]
+        if(state== pub.currentState){
+            var county = pub.all.features[c].properties.county
+            var tally = pub.all.features[c].properties.tally
+            countiesInState.push({county:county,tally:tally})
+        }
+    }
+    var sorted = countiesInState.sort(function(a,b){
+        return parseFloat(b.tally)-parseFloat(a.tally)
+    })
+    for(var s in sorted){
+       // console.log(s)
+        sorted[s]["order"]=s
+    }
+   return sorted
+   // drawList(sorted)
+    //sort by tally
+    //add to page
+}
+
+function drawList(data){
+    d3.select("#rankings svg").remove()
+    var svg = d3.select("#rankings").append("svg").attr("width",200).attr("height",data.length*12+12)
+    svg.selectAll(".ranked")
+    .data(data)
+    .enter()
+    .append("text")
+    .attr("class","ranked")
+    .attr("id",function(d){return d.county.replace(".","_").split(" ").join("_")})
+    .attr("county",function(d){return d.county})
+    .attr("x",function(d,i){return 20})
+    .attr("y",function(d,i){return parseInt(d.order)*12})
+    .text(function(d,i){return (parseInt(d.order)+1)+". "+d.county+" "+ Math.round(d.tally*10000)/10000})
+    .attr("transform","translate(0,20)")
+    .attr("fill",function(d){
+        return colorScale(d.tally)
+    })
+}
+
+function updateList(data){
+    // console.log(data[0])
+   //  console.log(data[data.length-1])
+     var svg = d3.select("#rankings svg").data(data)//.append("svg").attr("width",200).attr("height",data.length*12)
+   
+    d3.selectAll(".ranked")//.remove()
+    .data(data)
+    .each(function(d,i){
+       var c = d3.select(this).attr("county")
+    //    console.log(c)
+        //.remove()
+     //   console.log([i,d.order,parseInt(d.order)*12,d.county])
+        d3.selectAll("#"+d.county.replace(".","_").split(" ").join("_"))
+         .transition()
+         .duration(1000)
+         .delay(i*20)
+         .attr("y",parseInt(d.order)*12)
+        //
+        // .text(parseInt(d.order)+1+". "+d.county+" "+ Math.round(d.tally*10000)/10000)
+        .attr("transform","translate(0,20)")
+        
+    })
+    //.data(data)
+    // .enter()
+//     .append("text")
+//     .transition()
+//     .attr("x",function(d,i){return 20})
+//     .attr("y",function(d,i){return i*12})
+//     .text(function(d,i){return i+". "+d.county+" "+ Math.round(d.tally*10000)/10000})
+ }
 
 function calculateTally(toggleDictionary){
     drawLegend()
@@ -296,10 +375,6 @@ function drawLegend(){
     var svg = d3.select("#activeLegend").append("svg")
     .attr("width",200)
     .attr("height",100)
-        
-    var colorScale = d3.scaleLinear()
-    .domain([0,measures.length/2,measures.length])
-    .range(["green","gold","red"])
     
     svg.selectAll("rect")
     .data(measures)
@@ -1069,7 +1144,7 @@ function PopulateDropDownList(features,map) {
     }
     pub.bounds = boundsDict
    $('select').on("change",function(){
-      // console.log(this.value)       
+       //console.log(this.value)       
        
        if(this.value=="C48"){
         //   console.log("ok")
@@ -1095,8 +1170,12 @@ function PopulateDropDownList(features,map) {
            cartoGoToState( currentState )
            d3.selectAll(".hex").attr("opacity",.5)
            d3.select("#"+currentState+"_carto").attr("opacity",1)
+           
 
        }
+       
+       drawList(rankCounties())
+       
     })
     $('select').val("06")
 }
